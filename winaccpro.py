@@ -13,7 +13,7 @@ from scipy.constants import year,pi,G
 from scipy.optimize import fsolve
 from matplotlib.colors import ListedColormap
 
-model = 'UXOR_70_78_12-17'  # -- Name of the model
+model = 'He10830_thick_15-25'  # -- Name of the model
 
 have_observ = False # -- If True will get observation data from file ./observation.dat
 					# -- This file should include two columns of data -- first for velocites
@@ -38,7 +38,7 @@ except rm.NoSuchModelError as err:
 print(population_parameters) # -- Printing parameters for checking
 field_type = population_parameters['field_type'] # -- Setting field type
 
-u,l = 3,2 # -- Setting upper and lower level of the line
+u,l = 2,1 # -- Setting upper and lower level of the line
 
 popul_model = population_parameters['populations'] # -- Setting model name for populations
 try: # -- Trying to read the populations
@@ -58,7 +58,7 @@ n,m,mz = 100,100,100 # -- Setting accuracy:
 					 # --         Total number of grid points on the picture plane: m^2
 					 # -- 3. mz - Number of points on z-axis (line of sight integration)
 
-i,psi,alpha = 70,0,0 # -- Orientation parameters:
+i,psi,alpha = 80,0,0 # -- Orientation parameters:
 					 # -- 1. i     - angle between star rotational axis and line of sight
 					 # -- 2. alpha - angle between star rotational axis and the field axis
 					 # -- 3. psi   - phase angle of rotation of the field axis around rotational axis
@@ -80,10 +80,10 @@ vrot = 150 # -- Setting rotational velocity of the star on the equator
 
 prof.init_star(Rstar, Mstar, Tstar, vrot) # -- Star initialization
 prof.init_field(field_type, Mdot, first_border, second_border, in_cut, out_cut) # -- Field initialization
-# prof.init_custom_line(10830e-8, 5, 3, 4, 7.28591e-13, 1e4) # -- Custom line initialization
+prof.init_custom_line(10830e-8, 5, 3, 4, 7.28591e-13, 1e4) # -- Custom line initialization
 														   # -- arguments: (wave length, upper stat. weight, lower stat. weight
 														   # --    atom mass, absorbtion coeficient, temperature for the absorbtion coef.)
-prof.init_hydrogen_line(u, l) # -- Hydrogen line initialization
+# prof.init_hydrogen_line(u, l) # -- Hydrogen line initialization
 frequencies, nu_0 = prof.init_frequencies(n, 1) # -- Frequency grid initialization. Second argument controls borders.
 												# -- Examples: 1 - [-vesc:vesc], 0.5 - [-0.5*vesc:0.5*vesc]
 
@@ -135,7 +135,7 @@ dz, z_coord, r, n_u, n_l, ut, stark, v_z, dv_d, alphaline, k_lu, tau, S_ul = pro
 
 output = open('z.dat', 'w')
 	
-for i in range(100):
+for ii in range(100):
 	output.write(str(z_coord[i])+' '+str(dz[i])+ ' '+ str(r[i])+ ' '+ str(n_u[i])+ ' '+ str(n_l[i])+
 	        ' '+ str(ut[i])+ ' '+ str(stark[i])+ ' '+ str(v_z[i])+ ' '+ str(dv_d[i])+ ' '+ str(alphaline[i])+
 	        ' '+ str(k_lu[i])+ ' '+ str(tau[i])+ ' '+ str(S_ul[i])+ '\n')
@@ -143,7 +143,7 @@ for i in range(100):
 output.close()
 # -- Unneccesary solving of radiation transfer equation for one grid point: end
 
-profile, emission_map, emission = prof.calc_profile(frequencies, field_borders, grid, dS, mz, no_stark = False) # -- Profile calculation
+profile, emission_map, emission = prof.calc_profile(frequencies, field_borders, grid, dS, mz, no_stark = True) # -- Profile calculation
 
 
 
@@ -248,7 +248,7 @@ def save(val): # Saving the profile in text file
 	filename = Txts.text
 	filename = filename.replace(' ', '')
 	if filename == '':
-		filename = model+'_i'+str(i)+'_m'+str(m)
+		filename = model+'_i'+str(i)+'_m'+str(m)+'_vrot'+str(int(vrot))
 	output = open('profiles/'+filename+'.dat', 'w')
 	for freq, prof, emm in zip(frequencies, profile, emission):
 		output.write(str(-(freq-nu_0)/nu_0*3e5)+' '+str(prof)+' '+str(emm)+' '+str(freq)+'\n')
