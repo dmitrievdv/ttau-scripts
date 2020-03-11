@@ -92,13 +92,17 @@ def init_d_grid(rmi, rmo):
 #                'RZPsc_10_85_10-12', 'RZPsc_10_85_6-10', 'RZPsc_10_85_8-12',
 #                'RZPsc_10_90_8-10', 'RZPsc_10_90_10-12', 'RZPsc_10_90_6-10']
 
-# model_names = ['hart94_80_70_22-30', 'hart94_82_70_22-30',
-#                'hart94_85_70_22-30', 'hart94_87_70_22-30', 'hart94_90_70_22-30']
+# model_names = ['UXOR_80_80_12-17', 'UXOR_75_80_15-25', 'UXOR_70_80_15-25',
+#                'UXOR_80_80_12-17', 'UXOR_75_80_12-17', 'UXOR_70_80_12-17']#, 'hart94_80_70_22-30', 'hart94_90_70_22-30']
 
-model_names = ['UXOR_70_78_12-17', 'UXOR_70_78_15-25', 'UXOR_70_93_12-17', 'UXOR_70_93_15-25', 
-			   'UXOR_75_78_12-17', 'UXOR_75_78_15-25', 'UXOR_75_93_12-17', 'UXOR_75_93_15-25', 
-			   'UXOR_80_78_12-17', 'UXOR_80_78_15-25', 'UXOR_80_93_12-17', 'UXOR_80_93_15-25']
-			   #'hart94_80_70_22-30', 'hart94_82_70_22-30', 'hart94_85_70_22-30', 'hart94_87_70_22-30', 'hart94_90_70_22-30', 
+model_names = ['hart94_90_75_22-30', 'hart94_85_75_22-30', 'hart94_80_75_22-30', 
+               'hart94_90_75_42-50', 'hart94_85_75_42-50', 'hart94_80_75_42-50']
+               # 'hart94_80_75_22-40', 'hart94_85_75_22-40', 'hart94_90_75_22-40',
+               # 'hart94_80_75_42-50', 'hart94_85_75_42-50', 'hart94_90_75_42-50']
+# model_names = ['UXOR_70_78_12-17', 'UXOR_70_78_15-25', 'UXOR_70_93_12-17', 'UXOR_70_93_15-25', 
+# 			   'UXOR_75_78_12-17', 'UXOR_75_78_15-25', 'UXOR_75_93_12-17', 'UXOR_75_93_15-25', 
+# 			   'UXOR_80_78_12-17', 'UXOR_80_78_15-25', 'UXOR_80_93_12-17', 'UXOR_80_93_15-25']
+# 			   #'hart94_80_70_22-30', 'hart94_82_70_22-30', 'hart94_85_70_22-30', 'hart94_87_70_22-30', 'hart94_90_70_22-30', 
                
 
 
@@ -127,6 +131,7 @@ for model_name in model_names:
 
     Rstar, Mstar, Tstar = (model_parameters[key] for key in ['Rstar', 'Mstar', 'Tstar'])
     T_norm, Mdot = (model_parameters[key] for key in ['Tmax', 'Mdot'])
+    T_norm = 6000
     rmi, rmo = (model_parameters[key] for key in ['first_border', 'second_border'])
     # Mdot = 1e-7
     # T_hot = (Mdot*2e30/3e7*6.67e-11*Mstar*2e30/Rstar/7e8*(1-2/(rmi+rmo))/4/pi/(Rstar*7e8)**2/0.1/5.67e-8)**0.25
@@ -188,10 +193,21 @@ for model_name in model_names:
         hot = hot_T*np.exp(-(r-1)/hot_d)
         nh, ne, ni = mag.calc_populations(grid, 0.2, Mdot, Mstar, Rstar, Tstar, T_hot, levm, model=model_name)#, loc=False)
     else:
+        
         nh, ne, ni = mag.calc_populations(grid, T_norm, Mdot, Mstar, Rstar, Tstar, T_hot, levm, model=model_name,
-                                             loc = False, use_hymera = False, nh_cooling = True, model_dir=model_popul_directory)
-        # nh, ne, ni = mag.calc_populations(grid, T_norm, Mdot, Mstar, Rstar, Tstar, T_hot, levm, model=model_name,
-        #                                      loc = False, use_hymera = True, nh_cooling = False)
+                                             loc = True, use_hymera = False, nh_cooling = True, model_dir=model_popul_directory,
+                                             lc_ionization = True)
+        os.rename(model_popul_directory+'/'+model_name+'_popul.dat', 
+                  model_popul_directory+'/'+model_name+'_nhcool-stat_loc_popul.dat')
+
+        nh, ne, ni = mag.calc_populations(grid, T_norm, Mdot, Mstar, Rstar, Tstar, T_hot, levm, model=model_name,
+                                             loc = True, use_hymera = True, nh_cooling = False, model_dir=model_popul_directory,
+                                             lc_ionization = True)
+        os.rename(model_popul_directory+'/'+model_name+'_popul.dat', 
+                  model_popul_directory+'/'+model_name+'_nonstat_loc_popul.dat')
+        os.rename(model_popul_directory+'/'+model_name+'_loc_popul.dat', 
+                  model_popul_directory+'/'+model_name+'_stat_loc_popul.dat')
+
         
 
     

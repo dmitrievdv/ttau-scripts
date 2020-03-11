@@ -14,13 +14,11 @@ from scipy.optimize import fsolve
 from matplotlib.colors import ListedColormap
 import os
 
-models = ['UXOR_70_78_12-17', 'UXOR_70_78_15-25', 'UXOR_70_93_12-17', 'UXOR_70_93_15-25', 
-          'UXOR_75_78_12-17', 'UXOR_75_78_15-25', 'UXOR_75_93_12-17', 'UXOR_75_93_15-25', 
-          'UXOR_80_78_12-17', 'UXOR_80_78_15-25', 'UXOR_80_93_12-17', 'UXOR_80_93_15-25']
-profdir = 'UXOR'
-suffixes = ['']
-angles = [70]
-lines = [(3,2), (4,2), (5,2)]
+models = ['hart94_80_75_42-50', 'hart94_85_75_42-50', 'hart94_90_75_42-50']
+profdir = 'hart94_diskpoint'
+suffixes = ['_nhcool-stat_loc', '_stat_loc', '_nonstat_loc']
+angles = [15, 45, 75]
+lines = [(3,2)]
 
 try:
     os.mkdir(profdir)
@@ -32,16 +30,17 @@ for line in lines:
     for mainmodel in models:
         for suffix in suffixes:
             for i in angles:
-                model = mainmodel + suffix
+                model = mainmodel
+                popul_model = mainmodel + suffix
                 print(model)
                 population_parameters = rm.read_parameters(model)
                 field_type = population_parameters['field_type']
-                popul_model = population_parameters['populations']
+                # popul_model = population_parameters['populations']
                 (interp_grid, Te_atgrid, nh_atgrid,
                     ne_atgrid, n_u_atgrid, n_l_atgrid) = rm.read_populations_file(popul_model, u, l, field_type)
                 n,m,mz = 100,100,100
                 psi,alpha = 0,0
-                vrot = 150
+                vrot = 15
 
                 Rstar = population_parameters['Rstar']
                 Mstar = population_parameters['Mstar']
@@ -79,7 +78,7 @@ for line in lines:
                 # plt.plot(-(frequencies-nu_0)/nu_0*3e5, profile, 'b-')
                 # plt.show()
 
-                output = open('{:s}/{:s}_l{:d}{:d}_i{:d}_prof.dat'.format(profdir, model, u, l, i), 'w')
+                output = open('{:s}/{:s}_l{:d}{:d}_i{:d}_prof.dat'.format(profdir, popul_model, u, l, i), 'w')
                 print(profile[0], frequencies[0])
                 for vel, profil in zip(frequencies, profile):
                     vel = -(vel-nu_0)/nu_0*3e5

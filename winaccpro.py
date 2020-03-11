@@ -13,9 +13,10 @@ from scipy.constants import year,pi,G
 from scipy.optimize import fsolve
 from matplotlib.colors import ListedColormap
 
-model = 'He10830_thick_15-25'  # -- Name of the model
+model = 'hart94_90_70_22-30'  # -- Name of the model
+suffix = '_hym'
 
-have_observ = False # -- If True will get observation data from file ./observation.dat
+have_observ = True # -- If True will get observation data from file ./observation.dat
 					# -- This file should include two columns of data -- first for velocites
 					# -- and second for normalized intensity
 try: # -- Checking if file ./observation.dat exist by trying to open it
@@ -38,9 +39,9 @@ except rm.NoSuchModelError as err:
 print(population_parameters) # -- Printing parameters for checking
 field_type = population_parameters['field_type'] # -- Setting field type
 
-u,l = 2,1 # -- Setting upper and lower level of the line
+u,l = 3,2 # -- Setting upper and lower level of the line
 
-popul_model = population_parameters['populations'] # -- Setting model name for populations
+popul_model = population_parameters['populations'] + suffix # -- Setting model name for populations
 try: # -- Trying to read the populations
     (interp_grid, Te_atgrid, nh_atgrid, 
      ne_atgrid, n_u_atgrid, n_l_atgrid) = rm.read_populations_file(popul_model, u, l, field_type)
@@ -58,7 +59,7 @@ n,m,mz = 100,100,100 # -- Setting accuracy:
 					 # --         Total number of grid points on the picture plane: m^2
 					 # -- 3. mz - Number of points on z-axis (line of sight integration)
 
-i,psi,alpha = 80,0,0 # -- Orientation parameters:
+i,psi,alpha = 15,0,0 # -- Orientation parameters:
 					 # -- 1. i     - angle between star rotational axis and line of sight
 					 # -- 2. alpha - angle between star rotational axis and the field axis
 					 # -- 3. psi   - phase angle of rotation of the field axis around rotational axis
@@ -74,16 +75,16 @@ out_cut = population_parameters['out_cut'] # -- Setting outer field-cutting radi
 
 Mdot = population_parameters['Mdot'] # -- Setting acretion rate
 
-vrot = 150 # -- Setting rotational velocity of the star on the equator
+vrot = 15 # -- Setting rotational velocity of the star on the equator
 
 # a = np.array([1,1]) # -- What?! I don't remember why is it here and is it even needed...
 
 prof.init_star(Rstar, Mstar, Tstar, vrot) # -- Star initialization
 prof.init_field(field_type, Mdot, first_border, second_border, in_cut, out_cut) # -- Field initialization
-prof.init_custom_line(10830e-8, 5, 3, 4, 7.28591e-13, 1e4) # -- Custom line initialization
+# prof.init_custom_line(10830e-8, 5, 3, 4, 7.28591e-13, 1e4) # -- Custom line initialization
 														   # -- arguments: (wave length, upper stat. weight, lower stat. weight
 														   # --    atom mass, absorbtion coeficient, temperature for the absorbtion coef.)
-# prof.init_hydrogen_line(u, l) # -- Hydrogen line initialization
+prof.init_hydrogen_line(u, l) # -- Hydrogen line initialization
 frequencies, nu_0 = prof.init_frequencies(n, 1) # -- Frequency grid initialization. Second argument controls borders.
 												# -- Examples: 1 - [-vesc:vesc], 0.5 - [-0.5*vesc:0.5*vesc]
 
@@ -143,7 +144,8 @@ for ii in range(100):
 output.close()
 # -- Unneccesary solving of radiation transfer equation for one grid point: end
 
-profile, emission_map, emission = prof.calc_profile(frequencies, field_borders, grid, dS, mz, no_stark = True) # -- Profile calculation
+stark = True
+profile, emission_map, emission = prof.calc_profile(frequencies, field_borders, grid, dS, mz, no_stark = not stark) # -- Profile calculation
 
 
 
@@ -156,7 +158,7 @@ def recalculate(): # -- Recalculate the profile
 	global field_borders, grid, dS, profile, emission_map, emission
 	# prof.init_orientation(i, psi, alpha)
 	field_borders, grid, dS = prof.init_field_borders(m, grid_type = 'polar')
-	profile, emission_map, emission = prof.calc_profile(frequencies, field_borders, grid, dS, mz, no_stark = False)
+	profile, emission_map, emission = prof.calc_profile(frequencies, field_borders, grid, dS, mz, no_stark = not stark)
 	fig.suptitle('i = ' + str(i) + ', m = ' +  str(m)+', model: '+model)
 
 def update_m(val): # -- Update m (picture plane grid accuracy)
@@ -236,7 +238,7 @@ def redraw(val): #  -- Redrawing the emission map
 	axes[1].set_adjustable("box")
 
 	freq = nu_0 - freq_vel/3e5*nu_0
-	dummy, emission_map, emission = prof.calc_profile([freq], field_borders, grid, dS, mz, no_stark = False)
+	dummy, emission_map, emission = prof.calc_profile([freq], field_borders, grid, dS, mz, no_stark = not stark)
 	axes[1].plot(np.cos(np.linspace(0, 2*np.pi, 100)), np.sin(np.linspace(0, 2*np.pi, 100)), 'r--')#, zorder = 1)
 	cmap = plt.cm.Greys
 	em_map_plot = axes[1].pcolormesh(grid[1,:,:], grid[0,:,:], np.ma.log10(emission_map[:-1,:-1]), cmap = cmap)#, zorder = 2)
@@ -248,7 +250,7 @@ def save(val): # Saving the profile in text file
 	filename = Txts.text
 	filename = filename.replace(' ', '')
 	if filename == '':
-		filename = model+'_i'+str(i)+'_m'+str(m)+'_vrot'+str(int(vrot))
+		filename = model + suffix +'_i'+str(i)+'_m'+str(m)+'_vrot'+str(int(vrot))
 	output = open('profiles/'+filename+'.dat', 'w')
 	for freq, prof, emm in zip(frequencies, profile, emission):
 		output.write(str(-(freq-nu_0)/nu_0*3e5)+' '+str(prof)+' '+str(emm)+' '+str(freq)+'\n')

@@ -34,16 +34,16 @@ def Mdot_to_string(Mdot):
 model_dir = 'models/data/'
 os.makedirs(model_dir, exist_ok = True)
 
-logMdots = [-7, -7.5, -8]
+logMdots = [-8.0, -8.5, -9.0]
 logMdots = np.array(logMdots)
 Mdots = 10.0**logMdots
 # print(Mdots)
 # quit()
-Tmaxs = [7800, 9300]
-rmis = [1.25, 1.5]
-drm = [0.5, 1.0]
-# mags = cartesian(rmis, drm)
-mags = list(zip(rmis, drm))
+Tmaxs = [7000]
+rmis = [2.2, 4.2]
+drm = [0.8, 1.8]
+mags = cartesian(rmis, drm)
+# mags = list(zip(rmis, drm))
 
 models = cartesian(Mdots,Tmaxs,mags)
 
@@ -51,14 +51,14 @@ models = cartesian(Mdots,Tmaxs,mags)
 
 # quit()
 
-Mstar = 3
-Rstar = 2.7
-Tstar = 9500
+Mstar = 0.8
+Rstar = 2
+Tstar = 4000
 hotspot = False
 Thot = 5000
 dhot = 0.1
 
-star_name = 'UXOR'
+star_name = 'hart94'
 model_names = []
 
 for Mdot,Tmax,rmi,drm in models:
