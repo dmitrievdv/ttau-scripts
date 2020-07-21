@@ -13,8 +13,8 @@ from scipy.constants import year,pi,G
 from scipy.optimize import fsolve
 from matplotlib.colors import ListedColormap
 
-model = 'hart94_90_70_22-30'  # -- Name of the model
-suffix = '_hym'
+model = 'rotmag'  # -- Name of the model
+suffix = ''
 
 have_observ = False # -- If True will get observation data from file ./observation.dat
 					# -- This file should include two columns of data -- first for velocites
@@ -39,7 +39,7 @@ except rm.NoSuchModelError as err:
 print(population_parameters) # -- Printing parameters for checking
 field_type = population_parameters['field_type'] # -- Setting field type
 
-u,l = 3,2 # -- Setting upper and lower level of the line
+u,l = 2,1 # -- Setting upper and lower level of the line
 
 popul_model = population_parameters['populations'] + suffix # -- Setting model name for populations
 try: # -- Trying to read the populations
@@ -52,6 +52,13 @@ except rm.NoDataForLevel as err: # -- Self-explanatory
 except rm.UpLevelLowerThenLowLevel: # -- Self-explanatory
     print('Up level is lower than low level')
 
+vel_model = population_parameters['populations']
+use_custom_velocity = True
+try: # -- Trying to read custom velocity file
+    (interp_v_p, interp_v_t) = rm.read_velocity_file(popul_model, u, l, field_type)
+except rm.NoSuchModelError as err: # -- Self-explanatory
+    print("Can't find velocity data for model "+err.model_name)
+
 n,m,mz = 100,100,100 # -- Setting accuracy:
 					 # -- 1. n  - number of frequencies (velocities) on which the profile 
 					 # --         will be calculated
@@ -59,7 +66,7 @@ n,m,mz = 100,100,100 # -- Setting accuracy:
 					 # --         Total number of grid points on the picture plane: m^2
 					 # -- 3. mz - Number of points on z-axis (line of sight integration)
 
-i,psi,alpha = 15,0,0 # -- Orientation parameters:
+i,psi,alpha = 70,0,0 # -- Orientation parameters:
 					 # -- 1. i     - angle between star rotational axis and line of sight
 					 # -- 2. alpha - angle between star rotational axis and the field axis
 					 # -- 3. psi   - phase angle of rotation of the field axis around rotational axis
@@ -76,15 +83,15 @@ out_cut = population_parameters['out_cut'] # -- Setting outer field-cutting radi
 Mdot = population_parameters['Mdot'] # -- Setting acretion rate
 
 vrot = population_parameters['v_eq'] # -- Setting rotational velocity of the star on the equator
-
+print("vrot: ", vrot)
 # a = np.array([1,1]) # -- What?! I don't remember why is it here and is it even needed...
 
 prof.init_star(Rstar, Mstar, Tstar, vrot) # -- Star initialization
 prof.init_field(field_type, Mdot, first_border, second_border, in_cut, out_cut) # -- Field initialization
-# prof.init_custom_line(10830e-8, 5, 3, 4, 7.28591e-13, 1e4) # -- Custom line initialization
+prof.init_custom_line(10830e-8, 5, 3, 4, 7.28591e-13, 1e4) # -- Custom line initialization
 														   # -- arguments: (wave length, upper stat. weight, lower stat. weight
 														   # --    atom mass, absorbtion coeficient, temperature for the absorbtion coef.)
-prof.init_hydrogen_line(u, l) # -- Hydrogen line initialization
+# prof.init_hydrogen_line(u, l) # -- Hydrogen line initialization
 frequencies, nu_0 = prof.init_frequencies(n, 1) # -- Frequency grid initialization. Second argument controls borders.
 												# -- Examples: 1 - [-vesc:vesc], 0.5 - [-0.5*vesc:0.5*vesc]
 
@@ -96,7 +103,12 @@ field_borders, grid, dS = prof.init_field_borders(m, grid_type = 'polar') # -- C
 init_state = {'dipole' : prof.init_dipole_state, 'cone' : prof.init_cone_state} 
 init_state[field_type](n_u_atgrid, n_l_atgrid, Te_atgrid, ne_atgrid,
      nh_atgrid, interp_grid)
+
 # -- Initialization of populations interpolation: end
+
+if (use_custom_velocity and (field_type == "dipole")):
+	prof.init_dipole_custom_velocity(interp_v_p, interp_v_t)
+
 
 # -- Interface creation: start
 fig, axes = plt.subplots(1,2) 
@@ -128,7 +140,7 @@ Txti = TextBox(axI, 'i = ')
 Butm = Button(axBM, 'Change m', color ='0.85', hovercolor='1')
 Txtm = TextBox(axM, 'm = ')
 
-# -- Interface creation: start
+# -- Interface creation: end
 
 
 # -- Unneccesary solving of radiation transfer equation for one grid point: start 

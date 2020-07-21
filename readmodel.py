@@ -137,7 +137,7 @@ def read_parameters_from_string(model_name, data):
   for key, value in important_parameters_set_status.items():
     if not value:
       raise ImportantParameterNotSet(key, parameter_keys[key])
-       
+
   return parameters
 
 def read_parameters(model_name, model_dir = 'models/data'):
@@ -150,7 +150,7 @@ def read_parameters(model_name, model_dir = 'models/data'):
   except FileNotFoundError:
     raise NoSuchModelError(model_name)
 
-  important_parameters_set_status = copy(important_parameters)
+  important_parameters_set_status = important_parameters.copy()
 
   for line in parameters_file.readlines():
     # print(line)
@@ -246,6 +246,33 @@ def read_populations_file(model_name, u, l, field = 'dipole', model_dir = 'model
 
 
   return grid, Te, nh, ne, n_u, n_l 
+
+def read_velocity_file(model_name, u, l, field = 'dipole', model_dir = 'models/vel'):
+  try:
+    velocity_file = open(model_dir+'/'+model_name+'_vel.dat', 'r')
+  except FileNotFoundError:
+    raise NoSuchModelError(model_name)
+  lines = velocity_file.readlines()
+  grid_precision_data = lines[0].split('#')[1].strip()
+  if(field == 'dipole') :
+    rm_precision = int(grid_precision_data.split()[0])
+    dtet_precision = int(grid_precision_data.split()[1])
+    v_p = np.zeros((rm_precision, dtet_precision))
+    v_t = np.zeros((rm_precision, dtet_precision))
+    rm_position = 0
+    tet_position = 0
+    for line in lines[2:]:
+      if(line.strip() == ''):
+        tet_position = 0
+        rm_position += 1
+      else:
+        columns = line.split()
+        v_p[rm_position,tet_position] = float(columns[2])
+        v_t[rm_position,tet_position] = float(columns[3])
+        tet_position += 1
+    return v_p, v_t
+  else:
+    return 0, 0
 
 
 def gen_data_file(model_name, file_content, model_dir = 'models'):
