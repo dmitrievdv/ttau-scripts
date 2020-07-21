@@ -13,7 +13,8 @@ global_parameters = {"Mdot" : -1.0,
           "hot_spot" : False,
           "Thot" : -1.0,
           "Dhot" : -1.0,
-          "populations" : ''}
+          "populations" : '',
+          "v_eq" : 0.0}
 
 global_parameters_new = {"Mdot" : -1.0,
           "Mstar" : -1.0, 
@@ -28,7 +29,8 @@ global_parameters_new = {"Mdot" : -1.0,
           "hotspot" : '',
           "Thot" : -1.0,
           "Dhot" : -1.0,
-          "populations" : ''}
+          "populations" : '',
+          "v_eq" : 0.0}
 
 parameter_names = {"Mdot" : "Mdot",
              "Mstar" : "Mstar", 
@@ -44,7 +46,8 @@ parameter_names = {"Mdot" : "Mdot",
              "hot spot" : "hotspot",
              "Thot" : "Thot",
              "Dhot" : "Dhot",
-             "populations" : "populations"}
+             "populations" : "populations",
+             "equatorial rotation" : "v_eq"}
 
 parameter_read_funcs = {"Mdot" : float,
           "Mstar" : float, 
@@ -60,7 +63,8 @@ parameter_read_funcs = {"Mdot" : float,
           "hot spot" : str,
           "Thot" : float,
           "Dhot" : float,
-          "populations" : str}
+          "populations" : str,
+          "equatorial rotation": float}
 
 important_parameters = {"Mdot" : False,
           "Mstar" : False, 
@@ -101,14 +105,7 @@ def read_parameters_from_string(model_name, data):
   parameters['populations'] = model_name
   parameters['hotspot'] = ''
   print(global_parameters_new['hotspot'])
-  important_parameters_set_status = {"Mdot" : False,
-          "Mstar" : False, 
-          "Tstar" : False, 
-          "Rstar" : False,
-          "Tmax" : False,
-          "field_type" : False,
-          "first_border" : False,
-          "second_border" : False}
+  important_parameters_set_status = copy(important_parameters)
   # print(important_parameters_set_status)
   data_lines = data.split('\n')
   for line in data_lines:
@@ -140,12 +137,10 @@ def read_parameters_from_string(model_name, data):
   for key, value in important_parameters_set_status.items():
     if not value:
       raise ImportantParameterNotSet(key, parameter_keys[key])
-
-
+       
   return parameters
 
 def read_parameters(model_name, model_dir = 'models/data'):
-
   parameters = global_parameters
   parameters['populations'] = model_name
   parameters_file_name = model_name + '_data.dat'
@@ -154,6 +149,8 @@ def read_parameters(model_name, model_dir = 'models/data'):
     parameters_file = open(model_dir + '/'+parameters_file_name, 'r')
   except FileNotFoundError:
     raise NoSuchModelError(model_name)
+
+  important_parameters_set_status = copy(important_parameters)
 
   for line in parameters_file.readlines():
     # print(line)
@@ -165,11 +162,22 @@ def read_parameters(model_name, model_dir = 'models/data'):
       parameters[parameter_names[comment]] = parameter_read_funcs[comment](content)
     except KeyError:
       pass
+    except ValueError:
+        raise InvalidParameterValue(parameter_names[comment])
+    try:
+      important_parameters_set_status[parameter_names[comment]] = True
+    except KeyError:
+      pass
 
   if(parameters['out_cut'] == -1.0): 
     parameters['out_cut'] = parameters['second_border']
   if(parameters['in_cut'] == -1.0): 
     parameters['in_cut'] = 1.0
+
+  for key, value in important_parameters_set_status.items():
+    if not value:
+      raise ImportantParameterNotSet(key, parameter_keys[key])
+  
   return parameters
 
 def read_populations_file(model_name, u, l, field = 'dipole', model_dir = 'models/popul'):

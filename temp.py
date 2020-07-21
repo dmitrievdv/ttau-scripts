@@ -16,7 +16,7 @@ model_popul_directory = 'models/popul/'
 os.makedirs(model_data_directory, exist_ok = True)
 os.makedirs(model_popul_directory, exist_ok = True)
 
-gridr = 3; gridtet = 20; levm = 15
+gridr = 3; gridtet = 80; levm = 5
 
 
 
@@ -32,7 +32,7 @@ T_hot=0.0
 def init_d_grid(rmi, rmo):
     fig, axes = plt.subplots(2,1)
     plt.subplots_adjust(right = 0.89, bottom=0.25) 
-    x = [0,0.2,1]; y = [0.25,0.5,0.25]
+    x = [0,1,0.2]; y = [0.1,0.1,1]
     step = np.array(list(zip(x,y)))
     def draw_grid(step):
         axes[0].clear()
@@ -76,6 +76,7 @@ def init_d_grid(rmi, rmo):
             traceback.print_exc()
             return
     print('kek')
+    step = step[step[:,0].argsort()]
     d_grid = draw_grid(step)
 
     fig.canvas.mpl_connect("button_press_event", redraw_grid)
@@ -95,8 +96,7 @@ def init_d_grid(rmi, rmo):
 # model_names = ['UXOR_80_80_12-17', 'UXOR_75_80_15-25', 'UXOR_70_80_15-25',
 #                'UXOR_80_80_12-17', 'UXOR_75_80_12-17', 'UXOR_70_80_12-17']#, 'hart94_80_70_22-30', 'hart94_90_70_22-30']
 
-model_names = ['hart94_90_75_22-30', 'hart94_85_75_22-30', 'hart94_80_75_22-30', 
-               'hart94_90_75_42-50', 'hart94_85_75_42-50', 'hart94_80_75_42-50']
+model_names = ['hart94_70_75_22-30']#, 'hart94_85_75_22-30', 'hart94_80_75_22-30']
                # 'hart94_80_75_22-40', 'hart94_85_75_22-40', 'hart94_90_75_22-40',
                # 'hart94_80_75_42-50', 'hart94_85_75_42-50', 'hart94_90_75_42-50']
 # model_names = ['UXOR_70_78_12-17', 'UXOR_70_78_15-25', 'UXOR_70_93_12-17', 'UXOR_70_93_15-25', 
@@ -131,7 +131,7 @@ for model_name in model_names:
 
     Rstar, Mstar, Tstar = (model_parameters[key] for key in ['Rstar', 'Mstar', 'Tstar'])
     T_norm, Mdot = (model_parameters[key] for key in ['Tmax', 'Mdot'])
-    T_norm = 6000
+    # T_norm = 5550
     rmi, rmo = (model_parameters[key] for key in ['first_border', 'second_border'])
     # Mdot = 1e-7
     # T_hot = (Mdot*2e30/3e7*6.67e-11*Mstar*2e30/Rstar/7e8*(1-2/(rmi+rmo))/4/pi/(Rstar*7e8)**2/0.1/5.67e-8)**0.25
@@ -201,13 +201,11 @@ for model_name in model_names:
                   model_popul_directory+'/'+model_name+'_nhcool-stat_loc_popul.dat')
 
         nh, ne, ni = mag.calc_populations(grid, T_norm, Mdot, Mstar, Rstar, Tstar, T_hot, levm, model=model_name,
-                                             loc = True, use_hymera = True, nh_cooling = False, model_dir=model_popul_directory,
+                                             loc = True, use_hymera = False, nh_cooling = False, model_dir=model_popul_directory,
                                              lc_ionization = True)
         os.rename(model_popul_directory+'/'+model_name+'_popul.dat', 
-                  model_popul_directory+'/'+model_name+'_nonstat_loc_popul.dat')
-        os.rename(model_popul_directory+'/'+model_name+'_loc_popul.dat', 
                   model_popul_directory+'/'+model_name+'_stat_loc_popul.dat')
-
+       
         
 
     

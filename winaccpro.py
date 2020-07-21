@@ -16,7 +16,7 @@ from matplotlib.colors import ListedColormap
 model = 'hart94_90_70_22-30'  # -- Name of the model
 suffix = '_hym'
 
-have_observ = True # -- If True will get observation data from file ./observation.dat
+have_observ = False # -- If True will get observation data from file ./observation.dat
 					# -- This file should include two columns of data -- first for velocites
 					# -- and second for normalized intensity
 try: # -- Checking if file ./observation.dat exist by trying to open it
@@ -75,7 +75,7 @@ out_cut = population_parameters['out_cut'] # -- Setting outer field-cutting radi
 
 Mdot = population_parameters['Mdot'] # -- Setting acretion rate
 
-vrot = 15 # -- Setting rotational velocity of the star on the equator
+vrot = population_parameters['v_eq'] # -- Setting rotational velocity of the star on the equator
 
 # a = np.array([1,1]) # -- What?! I don't remember why is it here and is it even needed...
 

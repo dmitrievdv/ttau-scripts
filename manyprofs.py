@@ -14,11 +14,11 @@ from scipy.optimize import fsolve
 from matplotlib.colors import ListedColormap
 import os
 
-models = ['hart94_80_75_42-50', 'hart94_85_75_42-50', 'hart94_90_75_42-50']
+models = ['hart94_80_75_22-30', 'hart94_85_75_22-30', 'hart94_90_75_22-30']
 profdir = 'hart94_diskpoint'
 suffixes = ['_nhcool-stat_loc', '_stat_loc', '_nonstat_loc']
 angles = [15, 45, 75]
-lines = [(3,2)]
+lines = [(4,2)]
 
 try:
     os.mkdir(profdir)
